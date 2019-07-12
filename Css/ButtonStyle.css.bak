@@ -1,0 +1,60 @@
+
+.button,input[type='button'],input[type='submit']
+{
+    cursor: pointer;
+    height: 30px;
+    text-align: center;
+    padding: 0.2em 1em 0.25em;
+    font:0.8em/100% FangSong,Arial;
+    border-radius: 0.2em;
+}
+
+.input,input[type='text'],input[type='password'],select
+{
+    height: 30px;
+    line-height: 30px;
+    padding: 0.1em 0.5em 0.1em;
+    border-radius: 0.2em;
+}
+
+.divSearch {
+    margin: 5px 0 5px;
+    border-bottom: 1px solid #666;
+    padding: 0.0em 0 0.2em;
+}
+
+.divResult
+{
+
+}
+
+.divResult table {
+    border: 1px solid #666;
+    border-collapse: collapse;
+}
+
+.divResult table tr td {
+    border: 1px solid #aaa;
+    padding:0.1em 0.5em 0.1em;
+    text-align: center;
+}
+
+.divSearch table tr:nth-child(2n){
+    background-color: #222;
+}
+
+.divResult table tr:first-child {
+    background-color: #333;
+    color: #fff;
+    font-weight: bolder;
+}
+
+.divResult table tr:nth-child(2n)
+{
+    background-color: #efffef;
+}
+
+.divResult table tr:hover {
+    background-color: #88ffaa;
+    color: #000;
+}
