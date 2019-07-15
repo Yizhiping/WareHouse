@@ -18,25 +18,32 @@ switch ($act)
         {
             //todo: 空請求, 顯示主頁.
         } else {
-            if($isMobile)       #如果是移動端
+//            echo "Form/{$act}/index.php";
+            if(file_exists("Form/{$act}/index.php"))
             {
-                if(file_exists("Form/" . $act . "_Mobile.php"))     #存在移動頁面就加載移動頁面
-                {
-                    include "Form/" . $act . "_Mobile.php";
-                } else if(file_exists("Form/" . $act . ".php"))     #沒有就加載普通頁面
-                {
-                    include "Form/" . $act . ".php";
-                } else {                                                        #否則就報錯
-                    include "Form/404.php";
-                }
-            } else {                                                            #如果不是移動端
-                if(file_exists("Form/" . $act . ".php"))            #頁面存在則加載對應頁面
-                {
-                    include "Form/" . $act . ".php";
-                } else {                                                        #否則加載錯誤頁面
-                    include "Form/404.php";
-                }
+                include("Form/{$act}/index.php");
+            } else {
+                include("Form/404.php");
             }
+//            if($isMobile)       #如果是移動端
+//            {
+//                if(file_exists("Form/" . $act . "_Mobile.php"))     #存在移動頁面就加載移動頁面
+//                {
+//                    include "Form/" . $act . "_Mobile.php";
+//                } else if(file_exists("Form/" . $act . ".php"))     #沒有就加載普通頁面
+//                {
+//                    include "Form/" . $act . ".php";
+//                } else {                                                        #否則就報錯
+//                    include "Form/404.php";
+//                }
+//            } else {                                                            #如果不是移動端
+//                if(file_exists("Form/" . $act . ".php"))            #頁面存在則加載對應頁面
+//                {
+//                    include "Form/" . $act . ".php";
+//                } else {                                                        #否則加載錯誤頁面
+//                    include "Form/404.php";
+//                }
+//            }
         }
         break;
 }

@@ -49,10 +49,10 @@ class SFIS
         {
             $tmpArr = explode(',', $res[2]);
             return array(
-                'MODEL'     =>  $tmpArr[1],
-                'PALLET'    =>  $tmpArr[2],
-                'ITEM'      =>  $tmpArr[3],
-                'SO'        =>  $tmpArr[4]
+                'model'     =>  $tmpArr[1],
+                'pallet'    =>  $tmpArr[2],
+                'item'      =>  $tmpArr[3],
+                'so'        =>  $tmpArr[4]
             );
 
         } else {

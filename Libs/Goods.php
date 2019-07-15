@@ -35,16 +35,9 @@ class Goods
      */
     public function getGoodsInfo($searchInfo)
     {
-        $tmpSql = $this->__createSelSql($searchInfo);
-        $sql = null;
-        if($tmpSql) {
-            $sql = "select ShelfId,PalletId,model,item,so,qty,customer,uid,datein from Goods where 1=1 " . $tmpSql;
-            if($res = $this->gconn->getAllRow($sql))
-            {
-                return $res;
-            } else {
-                return false;
-            }
+        if($tmpSql = $this->__createSelSql($searchInfo))
+        {
+            return $this->gconn->getAllRow("select shelfId,palletId,model,item,so,qty,customer,uidIn,dateIn from goods where 1=1 " . $tmpSql);
         } else {
             return false;
         }
@@ -55,9 +48,9 @@ class Goods
      * @param $palletInfo   增加棧板的信息
      * @return true|false   成功返回true, 失敗返回false.
      */
-    public function putGoods($palletInfo)
+    public function in($palletInfo)
     {
-        $sql = "insert into Goods (PalletId, Model, Item, SO, Qty, Customer, ShelfId, Uid, Datein) VALUE (
+        $sql = "insert into Goods (PalletId, Model, Item, SO, Qty, Customer, ShelfId, uidIn, Datein) VALUE (
                 '{$palletInfo['palletId']}',
                 '{$palletInfo['model']}',
                 '{$palletInfo['item']}',
@@ -77,56 +70,47 @@ class Goods
      * @param $uid      出庫處理人
      * @return true|false
      */
-    public function goodsOut($palletId, $uid)
+    public function out($palletId, $uid)
     {
         #這裡需要一個事物, 從庫存刪除之前, 需要將數據保存到已出貨表中, 然後再刪除庫存表中的記錄, 否則執行回滾.
         #第一步, 開始事物
         $this->gconn->query('begin');
         #第二步,複製資料到已出貨表
-        if($this->gconn->query("insert into goods_shipped (palletid,model,item,so,qty,customer,UidIn,Datein) select palletid,model,item,so,qty,customer,uid,Datein from Goods where PalletId='{$palletId}';"))
-        {
-            #第三步, 更新已出貨表的處理人
-            if($this->gconn->query("update goods_shipped set DateOut=now(), UidOut='{$uid}' where PalletId='{$palletId}'"))
-            {
-                #第四步, 刪除庫存資料
-                if($this->gconn->query("delete from Goods where PalletId='{$palletId}'"))
-                {
-                    echo $this->gconn->lastSql;
-                    #第五步, 提交事物
-                    return $this->gconn->query('commit');
-                } else {
-                    $this->gconn->query('rollback');
-                    return false;
-                }
-            } else {
-                $this->gconn->query('rollback');
-                return false;
-            }
-        } else {
-            $this->gconn->query('rollback');
-            return false;
-        }
+        if(!$this->gconn->query("insert into goods_shipped (palletId,model,item,so,qty,customer,uidIn,dateIn) select palletId,model,item,so,qty,customer,uidIn,dateIn from Goods where PalletId='{$palletId}'")) goto outEnd;
+
+        #第三步, 更新已出貨表的處理人
+        if(!$this->gconn->query("update goods_shipped set dateOut=now(), uidOut='{$uid}' where PalletId='{$palletId}'")) goto outEnd;
+
+        #第四步, 刪除庫存資料
+        if(!$this->gconn->query("delete from Goods where PalletId='{$palletId}'")) goto outEnd;
+
+        #第五步, 提交事物
+        return $this->gconn->query('commit');
+
+        outEnd:
+        $this->gconn->query('rollback');
+        return false;
+
     }
 
     /**
      * 生成搜索所用sql
-     * @param $pallerInfo
+     * @param $palletInfo
      * @return bool|null|string
      */
-    private function __createSelSql($pallerInfo)
+    private function __createSelSql($palletInfo)
     {
         $tmpSql = null;
-        if(!empty($pallerInfo['shelfId'])) $tmpSql.= " and shelfid='{$pallerInfo['shelfId']}'";
-        if(!empty($pallerInfo['palletId'])) $tmpSql.= " and palletId='{$pallerInfo['palletId']}'";
-        if(!empty($pallerInfo['model'])) $tmpSql.= " and model='{$pallerInfo['model']}'";
-        if(!empty($pallerInfo['item'])) $tmpSql.= " and item='{$pallerInfo['item']}'";
-        if(!empty($pallerInfo['customer'])) $tmpSql.= " and customer='{$pallerInfo['customer']}'";
-        if(!empty($pallerInfo['so'])) $tmpSql.= " and so='{$pallerInfo['so']}'";
-        if(!empty($pallerInfo['uid'])) $tmpSql.= " and uid='{$pallerInfo['uid']}'";
-        if(!empty($pallerInfo['dateStart'])) $tmpSql .= " and datein>'{$pallerInfo['dateStart']}'";
-        if(!empty($pallerInfo['dateStop'])) $tmpSql .= " and datein<'{$pallerInfo['dateStart']}'";
 
-
+        foreach ($palletInfo as $key=>$val)
+        {
+            if($key != 'dateStart' && $key != 'dateStop') {
+                if (!empty($val)) $tmpSql .= " and {$key}='{$val}'";
+            } else {
+                if (!empty($val) && $key=='dateStart') $tmpSql .= " and datein >='{$val}'";
+                if (!empty($val) && $key=='dateStop') $tmpSql .= " and datein <='{$val}'";
+            }
+        }
         return empty($tmpSql) ? false : $tmpSql;
     }
 
@@ -136,7 +120,7 @@ class Goods
      * @param $newShelfId 新的儲位
      * @return bool|null    成功返回true, 失敗返回false
      */
-    public function updateShelfId($palletId, $newShelfId)
+    public function update($palletId, $newShelfId)
     {
         #獲取原位置, 寫事件用的
         $oldShelfId = $this->gconn->getItemByItemName("select shelfId from Goods where PalletId='{$palletId}'");

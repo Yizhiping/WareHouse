@@ -64,9 +64,9 @@ if($isMobile) {
 <div id="divMainMenu">
     <div style="float: left">
     <?php
-        __createLink(null,null,'menuButton','?act=good/search','查詢');
-        __createLink(null,null,'menuButton','?act=good/in','入庫');
-        __createLink(null,null,'menuButton','?act=good/out','出庫');
+        __createLink(null,null,'menuButton','?act=goods/search','查詢');
+        __createLink(null,null,'menuButton','?act=goods/in','入庫');
+        __createLink(null,null,'menuButton','?act=goods/out','出庫');
         if(!$isMobile) __createLink(null,null,'menuButton','?act=shelf','儲位');
         if(!$isMobile) __createLink(null,null,'menuButton','?act=inventory','盤點');
         if(!$isMobile && $user->authByRole('管理員'))
