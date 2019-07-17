@@ -2,215 +2,136 @@
 /**
  * Created by PhpStorm.
  * User: Ping_yi
- * Date: 2019/6/14
- * Time: 8:24
+ * Date: 2019/7/15
+ * Time: 16:15
  */
-#*******************引用庫文件**************************
-require_once "Libs/Goods.php";                  //貨物庫
-
-//*****************表單變量獲取**************************
-$btnSearchGoods = __get('btnSearchGoods');      //查找按鈕
-$btnGoodsOut = __get('btnGoodsOut');            //出貨按鈕
-$btnGoodsChange = __get("btnGoodsChange");      //交換按鈕
-$isn = __get('isn');                            //查詢的條件
-$outType = __get('outType');                    //查詢的方式
-$tragetShelf = __get('tragetShelf');            //目標儲位
-
-#***********************變量定義*************************
-$goods = new Goods();                               //貨物類實例化
-$palletInfo = $goods->samplePalletInfo;             //貨物結構體
-$res = null;                                        //搜索結果
-$searchResultHtml = null;                           //html字符
-$outTypeHtml = null;                                //查找方式html
-$arrSearchType = array('byPalletId'=>'棧板','byShelfId'=>'儲位','bySoId'=>'訂單');
-$err = null;
-$errList = array();                                       //出庫錯誤標誌位
-$errPallets = array();                              //出庫失敗的棧板號
-
-#***********************生成查找方式html*****************
-foreach ($arrSearchType as $k=>$v)
-{
-    if($outType == $k) {
-        $outTypeHtml .= "<option value='{$k}' selected='selected'>{$v}</option>";
-    } else {
-        $outTypeHtml .= "<option value='{$k}'>{$v}</option>";
-    }
-}
-
-#***********************貨物查找*************************
-if(!empty($btnSearchGoods))
-{
-    switch ($outType)
-    {
-        case 'byPalletId':
-            $palletInfo['palletId'] = $isn;
-            break;
-        case 'byShelfId':
-            $palletInfo['shelfId'] = $isn;
-            break;
-        case 'bySoId':
-            $palletInfo['so'] = $isn;
-            break;
-    }
-    #數據結構
-    #ShelfId,PalletId,model,item,so,qty,customer,uid,datein
-    if($res = $goods->getGoodsInfo($palletInfo))
-    {
-        $id = 0;
-        $searchResultHtml .= "<table>";
-        $searchResultHtml .= "<tr><td>項次</td><td>儲位</td><td>棧板號</td><td>訂單</td><td>數量</td><td><input type='checkbox' id='selAll'/></td></tr>";
-        foreach ($res as $r)
-        {
-            $id++;
-            $searchResultHtml .= "<tr><td>{$id}</td><td>{$r[0]}</td><td>{$r[1]}</td><td>{$r[4]}</td><td>{$r[5]}</td><td><input type='checkbox' name='PID_{$r[1]}' class='clsSelPallet' value='{$r[1]}'/></td></tr>";
-        }
-        $searchResultHtml .= "</table>";
-    } else {
-        $searchResultHtml .= "<span>沒有找到任何結果</span>";
-    }
-}
-
-#***********************出庫*****************************
-if(!empty($btnGoodsOut))
-{
-    $pallets = array();
-    $isn = null;    #清空查詢條件
-
-    #查找選中的棧板信息
-    foreach ($_POST as $k=>$v)
-    {
-        #以PID開頭是提交的棧板號
-        if(substr($k,0,4)=='PID_')
-        {
-            array_push($pallets,$v);
-        }
-    }
-
-    if(count($pallets) == 0)
-    {
-        array_push($errList,0);
-    } else {
-        foreach ($pallets as $v) {
-            if ($goods->goodsOut($v, $user->uid)) {
-                $err = 1;
-            } else {
-                $err = 2;
-                array_push($errPallets, $v . '=>'. $goods->gconn->getErr());
-            }
-            array_push($errList,$err);
-        }
-    }
-
-    if(in_array(2,$errList))            //有2, 說明有失敗
-    {
-        __showMsg('操作未完成, 錯誤的棧板號為' . implode(',',$errPallets));
-    } else if(in_array(0,$errList))     //有0, 說明沒有上傳任何棧板
-    {
-        __showMsg('出貨失敗,沒有選擇任何貨物..');
-    } else {                                       //否則就是成功
-        __showMsg('出貨成功.');
-    }
-}
-
-#***********************儲位轉移*************************
-if(!empty($btnGoodsChange))
-{
-    $pallets = array();
-    $isn = null;    #清空查詢條件
-
-    #查找選中的棧板信息
-    foreach ($_POST as $k=>$v)
-    {
-        #以PID開頭是提交的棧板號
-        if(substr($k,0,4)=='PID_')
-        {
-            array_push($pallets,$v);
-        }
-    }
-
-    if(count($pallets) == 0)
-    {
-        array_push($errList,0);
-    } else {
-        foreach ($pallets as $v) {
-            if ($goods->updateShelfId($v, $tragetShelf)) {
-                $err = 1;
-            } else {
-                $err = 2;
-            }
-            array_push($errPallets,$v);
-        }
-    }
-
-    if(in_array(2,$errList))            //有2, 說明有失敗
-    {
-        __showMsg('操作未完成, 錯誤的棧板號為' . implode(',',$errPallets));
-    } else if(in_array(0,$errList))     //有0, 說明沒有上傳任何棧板
-    {
-        __showMsg('貨物儲位變更失敗,沒有選擇任何貨物..');
-    } else {                                       //否則就是成功
-        __showMsg('貨物儲位變更成功.');
-    }
-}
 
 ?>
 <script type="text/javascript">
-    $(document).ready(function (e) {
-        $('#selAll').click(function (e) {
+    $(document).ready(function () {
+        $('#selAll').click(function () {                   //全部選中或不選, 及顏色變化
             if($(this).is(':checked')) {
                 $('.clsSelPallet').prop('checked',true);
+                $('.clsSelPallet').parent('td').parent('tr').children().css('background','#33ff33');
             } else {
                 $('.clsSelPallet').prop('checked',false);
+                $('.clsSelPallet').parent('td').parent('tr').children().css('background','none');
             }
         });
 
-        $('#btnShowShelfChange').click(function (e) {
-            if($('#divShelfChange').attr('display')=='block')
+        $('.palletRow').click(function () {                 //單行選中或取消, 及顏色變化
+            var thisChk = $(this).children('td').children('input');
+            if(thisChk.is(':checked'))
             {
-                $('#divShelfChange').hide();
+                $(this).children('td').css('background','none');
+                thisChk.prop('checked',false)
             } else {
-                $('#divShelfChange').show();
+                $(this).children('td').css('background','#33ff33');
+                thisChk.prop('checked',true);
+            }
+        });
+
+
+        $('#btnShowShelfChange').click(function () {
+            if($('#divNewShelfId').is(':hidden'))
+            {
+                $('#divNewShelfId').show();
+                $(this).val('隱藏新儲位');
+            } else {
+                $('#divNewShelfId').hide();
+                $(this).val('顯示新儲位');
             }
         });
     });
 </script>
-<style>
-    #divGoodsOut label
-    {
-        font-size: 1.5em;
-    }
-    #divResultGoodSearch
-    {
-        font-size: 35px;
-    }
-</style>
-<div id="divGoodsOut">
-    <form action="?act=goodsout" method="post" enctype="multipart/form-data" name="formGoodsOut" id="formGoodsOut">
-        <div class="divSearch">
-            <div>
-                <label for="outType">方式:</label>
-                <select name="outType" id="outType">
-                <?php echo $outTypeHtml ?>
-                </select>
-            </div>
-            <div>
-            <label for="isn">查詢內容:</label>
-            <input type="text" name="isn" id="isn" value="<?php echo $isn ?>"/>
-            <input type="submit" name="btnSearchGoods" id="btnSearchGoods" value="查詢" />
-            <input type="submit" name="btnGoodsOut" id="btnGoodsOut" value="選定出貨" />
-            <input class="button" type="button" id="btnShowShelfChange" name="btnShowShelfChange" value="變更儲位" />
-            </div>
-        </div>
-        <div id="divShelfChange" style="display: none;">
-            <label for="iptTargetShelf">目標儲位:</label>
-            <?php __createList($conn->getLine('select shelfId from shelfs order by ShelfID'), 'tragetShelf', 'tragetShelf',null, $tragetShelf ); ?>
-            <input type="submit" name="btnGoodsChange" id="btnGoodsChange" value="變更儲位" />
-        </div>
-        <div id="divResultGoodSearch" class="divResult">
-            <?php echo $searchResultHtml ?>
-        </div>
-    </form>
-</div>
 
-
-
+<form method="post" action="?act=goods/out">
+    <div style="border-bottom: 1px solid #222; padding: 5px 0 5px; font-size: 1.5em;" >
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 33%;"><input style="width: 100%" type="submit" name="btnGoodsSearch" id="btnGoodSearch" class="button" value="查詢" /></td>
+                <td style="width: 33%;"><input style="width: 100%" type="submit" name="btnGoodsOut" id="btnGoodsOut" class="button" value="出貨" /></td>
+                <td style="width: 33%;"><input style="width: 100%" type="button" name="btnShowShelfChange" id="btnShowShelfChange" class="button" value="顯示新儲位" /></td>
+            </tr>
+        </table>
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 15%;">條碼:</td>
+                <td colspan="3"><input style="width: 100%;" type="text" name="scanISN" id="isn" value="<?php print $scanISN ?>" class="input" /></td>
+            </tr>
+        </table>
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 15%;">方式:</td>
+                <td>
+                    <select name="opType" id="opType" style="width: 100%;" class="selBlur">
+                        <?php
+                        foreach (array('棧板'=>'pallet','儲位'=>'shelf','訂單'=>'so') as $key=>$val)
+                        {
+                            $html = "<option value='{$val}'>{$key}</option>";
+                            if($opType == $val) $html = "<option value='{$val}' selected='selected'>{$key}</option>";
+                            print $html;
+                        }
+                        ?>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>內容:</td>
+                <td><input type="text" name="isn" id="isnAAA" value="<?php print $isn ?>" class="input" style="width: 100%;"/></td>
+            </tr>
+        </table>
+    </div>
+    <div id="divNewShelfId" style="border-bottom: 1px solid #222; padding: 5px 0 5px;display: none;">
+        <table style="width: 100%;">
+            <tr>
+                <td style="width: 20%;">新儲位:</td>
+                <td style="width: 40%;">
+                    <select id="newShelfId" name="newShelfId" style="width: 100%;">
+                        <option value="NULL">選擇儲位</option>
+                        <?php
+                        foreach ($conn->getLine("select shelfId from shelfs order by ShelfID") as $item)
+                        {
+                            printf("<option value='%s'>%s</option>" , $item , $item);
+                        }
+                        ?>
+                    </select>
+                </td>
+                <td style="width: 40%;"><input style="width: 100%;" type="submit" name="btnGoodsChange" id="btnGoodsChange" class="button" value="變更儲位" /></td>
+            </tr>
+        </table>
+    </div>
+    <div>
+        <?php
+        if(!$result)
+        {
+            print "沒有數據可顯示.";
+        } else {
+            //shelfId,palletId,model,item,so,qty,customer,uidIn,dateIn
+            //表頭部分
+            print "<table class='resultTable' style='width: 100%;'>";
+            print "<tr class='resultTitle'>";
+            foreach (array('序號','儲位','棧板號',/*'機種','料號',*/'訂單','數量') as $item) print "<td>{$item}</td>";
+            print "<td><input type='checkbox' id='selAll'/></td>";
+            print "</tr>";
+            //表格部分
+            $idx = 0;
+            foreach ($result as $item)
+            {
+                $idx++;
+                print "<tr class='palletRow resultContent'>";
+                printf( "<td>%d</td>", $idx);
+                printf( "<td>%s</td>", $item['shelfId']);
+                printf( "<td>%s</td>", $item['palletId']);
+//                printf( "<td>%s</td>", $item['model']);
+//                printf( "<td>%s</td>", $item['item']);
+                printf( "<td>%s</td>", $item['so']);
+                printf( "<td>%s</td>", $item['qty']);
+                printf( "<td><input type='checkbox' name='PID_%s' class='clsSelPallet' value='%s'/></td>", $item['palletId'],$item['palletId']);
+                print "</tr>";
+            }
+            print "</table>";
+        }
+        ?>
+    </div>
+</form>

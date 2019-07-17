@@ -35,5 +35,5 @@
             ?>
 
     </div>
-    <div><?php echo $message ?></div>
+    <div style="text-align: center; font-size: 1.5em; border: 1px solid"><?php echo $message ?></div>
 </form>

@@ -60,7 +60,6 @@ class User
     function login($uid, $pwd)
     {
         $userInfo = $this->uconn->getFristRow("select uid,pwd,name,mail,lastLogin,loginTimes,loginAddr,enable from users where Uid='{$uid}'");
-        echo $this->uconn->lastSql;
         if($userInfo)
         {
             if(password_verify($pwd, $userInfo['pwd']))     //verify password
@@ -135,12 +134,7 @@ class User
         if(password_verify($oldPwd, $this->uconn->getItemByItemName("select pwd from users where uid='{$uid}'")))
         {
             $newPwd = password_hash($newPwd, PASSWORD_DEFAULT);
-            if($this->uconn->query("update users set pwd='{$newPwd}'"))
-            {
-                return true;
-            } else {
-                return false;
-            }
+            return $this->uconn->query("update users set pwd='{$newPwd}'");
         } else {
             return false;
         }
@@ -149,10 +143,9 @@ class User
     /**
      * 增加一個用戶
      * @param $userInfo
-     * @param $team
      * @return bool|mysqli_result
      */
-    public function userAdd($userInfo, $team)
+    public function userAdd($userInfo)
     {
         $userInfo['pwd'] = password_hash($userInfo['pwd'],PASSWORD_DEFAULT);
         $sql = "insert into users (uid, name, pwd, mail) value (
@@ -160,12 +153,7 @@ class User
                 '{$userInfo['name']}',
                 '{$userInfo['pwd']}',
                 '{$userInfo['mail']}')";
-        if($this->uconn->query($sql))
-        {
-            return $this->uconn->query("insert into utid (uid, tid) values ('{$userInfo['uid']}','{$team}')");
-        } else {
-            return false;
-        }
+        return $this->uconn->query($sql);
     }
 
     /**
@@ -262,6 +250,29 @@ class User
     }
 
     /**
+     * 從RFID表刪除角色的一個功能
+     * @param $rid
+     * @param $fid
+     * @return bool|mysqli_result
+     */
+    public  function delRoleFun($rid, $fid)
+    {
+        return $this->uconn->query("delete from rfid where rid='{$rid}' and fid='{$fid}'");
+    }
+
+    /**
+     * 從RFID表增加角色的一個功能
+     * @param $rid
+     * @param $fid
+     * @return bool|mysqli_result
+     */
+    public function addRoleFun($rid, $fid)
+    {
+        $this->delRoleFun($rid, $fid);  //添加前先刪除, 防止有重複的
+        return $this->uconn->query("insert into rfid (rid, fid) value ('{$rid}','{$fid}')");
+    }
+
+    /**
      * 增加一個角色/功能關係
      * @param $rid
      * @param $fid
@@ -275,11 +286,12 @@ class User
     /**
      * 從用戶/角色表刪除項目
      * @param $uid
+     * @param $rid
      * @return bool|mysqli_result
      */
-    public function delByUserFromURID($uid)
+    public function delByUserFromURID($uid, $rid)
     {
-        return $this->uconn->query("delete from urid where uid='{$uid}'");
+        return $this->uconn->query("delete from urid where uid='{$uid}' and rid='{$rid}'");
     }
 
     /**
@@ -290,6 +302,7 @@ class User
      */
     public function addByUserToURID($uid, $rid)
     {
+        $this->delByUserFromURID($uid, $rid);
         return $this->uconn->query("insert into urid (uid, rid) value ('{$uid}','{$rid}')");
     }
 

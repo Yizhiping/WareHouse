@@ -1,10 +1,11 @@
-body, div, address, blockquote, iframe, ul, ol, dl, dt, dd, li, dl, h1, h2, h3, h4, h5, h6, p, pre, table, caption, th, td, form, legend, fieldset, input, button, select, textarea
+ /*div, */
+ address, blockquote, iframe, ul, ol, dl, dt, dd, li, dl, h1, h2, h3, h4, h5, h6, p, pre, table, caption, th, td, form, legend, fieldset, input, button, select, textarea
 {
     margin:0;
     padding:0;
     font-weight: normal;
     font-style: normal;
-    font-size: 100%;
+    font-size: 1em;
     font-family: inherit;
 }
 ol, ul ,li{list-style: none;}
@@ -34,21 +35,22 @@ label {
 .button,input[type='button'],input[type='submit']
 {
     cursor: pointer;
-    height: 1.5em;
+    /* height: 1em; */
     text-align: center;
     padding: 0.2em 1em 0.25em;
-    font:1.5em/100% FangSong,Arial;
+    font: 1em/100% FangSong,Arial;
     border-radius: 0.2em;
 }
 
 .input,input[type='text'],input[type='password'],select
 {
-    height: 1.5em;
-    line-height: 30px;
+    /* height: 1.5em; */
+    /* line-height: 30px; */
     padding: 0.2em 1em 0.25em;
-    font-size:1.5em;
+     font-size: 1em;
     border-radius: 0.2em;
     background-color: #FFFFFF;
+
 }
 /**********************按鈕樣式結束*******************/
 
@@ -57,43 +59,38 @@ label {
     margin: 5px 0 5px;
     border-bottom: 1px solid #666;
     padding: 0.0em 0 0.2em;
+    width: 100%;
 }
 /**********************搜索欄樣式結束*****************/
 /**********************搜索結果樣式*******************/
-.divResult
-{
-
-}
-
-.divResult table {
+.resultTable {
     border: 1px solid #666;
     border-collapse: collapse;
+    cursor: default;
 }
 
-.divResult table tr td {
+.resultTable tr td {       /*內容*/
     border: 1px solid #aaa;
     padding:0.1em 0.5em 0.1em;
     text-align: center;
 }
 
-.divSearch table tr:nth-child(2n){
-    background-color: #222;
-}
-
-.divResult table tr:first-child {
+.resultTitle td {       /*標題欄*/
     background-color: #333;
     color: #fff;
-    font-weight: bolder;
+    font-weight: bold;
 }
+ .resultContent td{
+    height: 1.2em;
+ }
 
-.divResult table tr:nth-child(2n)
+.resultContent:nth-child(2n+1)
 {
     background-color: #efffef;
 }
 
-.divResult table tr:hover {
+.resultContent:hover {
     background-color: #88ffaa;
-    color: #000;
 }
  /************************搜索結果樣式結束***********************/
 

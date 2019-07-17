@@ -5,74 +5,70 @@
  * Date: 2019/6/11
  * Time: 22:13
  */
-require_once "Libs/Goods.php";           //包含庫
-//********************表單變量獲取**********************
-$searchType = __get('searchType');      //查找類型
-$isn        = __get('iptSearch');       //查找內容
-$btnSearch  = __get('btnSearch');       //查找按鈕
-
-
-//*********************變量定義*************************
-$goods = new Goods();
-$palletInfo = $goods->samplePalletInfo;
-$resultHtml = null;
-$idx = 0;
-
-//*********************查找*****************************
-if(!empty($btnSearch))
-{
-    switch ($searchType)
-    {
-        case 'S001':
-            $palletInfo['shelfId'] = $isn;
-            break;
-        case 'S002':
-            $palletInfo['so']     = $isn;
-            break;
-        case 'S003':
-            $palletInfo['palletId'] = $isn;
-            break;
-    }
-#ShelfId,PalletId,model,item,so,qty,customer,uid,datein
-    if($res = $goods->getGoodsInfo($palletInfo))
-    {
-        $resultHtml .= "<table><tr><td>序號</td><td>儲位</td><td>棧板</td><td>訂單</td><td>數量</td></tr>";
-        foreach ($res as $r)
-        {
-            $idx++;
-            $resultHtml .= "<tr><td>{$idx}</td><td>{$r[0]}</td><td>{$r[1]}</td><td>{$r[4]}</td><td>{$r[5]}</td></tr>";
-
-        }
-        $resultHtml .= "</table>";
-    } else {
-        $resultHtml .= "沒有找到相關結果.";
-    }
-}
 
 ?>
-<style>
-    .divResult table tr td{
-        font-size: 100%;
-        height: 1em;
-    }
-    .divSearch form label {
-        font-size: 1.5em;
-    }
-</style>
-<div class="divSearch">
-    <form id="formSearch" name="formSearch" method="post" action="?act=search">
-        <label for="searchType">類型</label>
-        <select name="searchType" id="searchType">
-            <option value="S001">儲位</option>
-            <option value="S002">訂單</option>
-            <option value="S003">棧板</option>
-        </select>
-        <br />
-        <label for="iptSearch">内容</label>
-        <input type="text" name="iptSearch" id="iptSearch" value="<?php echo $isn ?>" style="width: 50%"/>
-        <input type="submit" name="btnSearch" id="btnSearch" value="查詢">
+
+<div class="divSearch" style="font-size: 1.5em;">
+    <form id="formSearch" name="formSearch" method="post" action="?act=goods/search">
+        <table style="width: 100%;">
+            <td colspan="4"><input type="submit" name="btnSearch" id="btnSearch" value="查詢" style="width: 100%;"></td>
+            <tr>
+                <td style="width: 15%;">條碼:</td>
+                <td colspan="3"><input style="width: 100%;" type="text" name="scanISN" id="isn" value="<?php print $scanISN ?>" class="input"  /></td>
+            </tr>
+            <tr>
+                <td style="width: 15%;">類型:</td>
+                <td >
+                    <select name="searchType" id="searchType"style="width: 100%;" class="selBlur">
+                        <?php
+                        foreach (array('儲位'=>'shelf','訂單'=>'so','棧板'=>'pallet') as $key=>$val)
+                        {
+                            $html = "<option value='{$val}'>{$key}</option>";
+                            if($searchType == $val)  $html = "<option value='{$val}' selected='selected'>{$key}</option>";
+                            print $html;
+                        }
+                        ?>
+                    </select>
+                </td>
+                <tr>
+                <td style="width: 15%;">內容:</td>
+                <td ><input style="width: 100%;" type="text" name="isn" id="isnAAA" value="<?php echo $isn ?>" class="input" /></td>
+            </tr>
+
+            </tr>
+        </table>
     </form>
 </div>
-<div class="divResult">
-    <?php echo $resultHtml ?>
+<div class="divResult" style="font-size: 1em;">
+    <?php
+    if(!$result)
+    {
+        echo "沒有數據可顯示.";
+    } else {
+        //shelfId,palletId,model,item,so,qty,customer,uidIn,dateIn
+        //表頭部分
+        echo "<table class='resultTable' style='width: 100%;'>";
+        echo "<tr class='resultTitle'>";
+        foreach (array('序號','儲位','棧板號',/*'機種','料號',*/'訂單','數量') as $item) echo "<td>{$item}</td>";
+//        echo "<td><input type='checkbox' id='selAll'/></td>";
+        echo "</tr>";
+        //表格部分
+        $idx = 0;
+        foreach ($result as $item)
+        {
+            $idx++;
+            print "<tr class='resultContent'>";
+            printf( "<td>%d</td>", $idx);
+            printf( "<td>%s</td>", $item['shelfId']);
+            printf( "<td>%s</td>", $item['palletId']);
+//            printf( "<td>%s</td>", $item['model']);
+//            printf( "<td>%s</td>", $item['item']);
+            printf( "<td>%s</td>", $item['so']);
+            printf( "<td>%s</td>", $item['qty']);
+//            printf( "<td><input type='checkbox' name='PID_%s' class='clsSelPallet' value='%s'/></td>", $item['palletId'],$item['palletId']);
+            print "</tr>";
+        }
+        print "</table>";
+    }
+    ?>
 </div>

@@ -14,7 +14,7 @@ $goods = new Goods();
 $sfis = new SFIS($device, $opid);     //實例化SFISWebservice
 
 //********************************變量定義***********************************
-$isn = __get('isn');                //查詢的條碼
+//$isn = __get('isn');                //查詢的條碼
 $sfisISN = null;                        //從SFIS獲取的條碼
 $item = __get('item');              //料號
 $palletId = __get('palletId');      //棧板號
@@ -24,7 +24,7 @@ $model = __get('model');             //機種
 $shelfId = __get('shelfId');         //儲位
 $existShelfId = false;                   //已經存在的儲位ID
 $palletInfo = $goods->samplePalletInfo;  //貨物資料格式
-$message = null;                        //需要顯示的信息
+$message = "請輸入條碼進行操作";                        //需要顯示的信息
 $isSuccess = false;                     //操作是否成功
 $result = false;                        //查詢的結果
 
@@ -32,6 +32,7 @@ $result = false;                        //查詢的結果
 $shelfId = __get('shelfId');            //儲位ID
 $newShelfId = __get('newShelfId');      //新儲位ID, 變更時用
 $isn = __get('isn');                    //查詢的條碼
+$scanISN = __get("scanISN");            //出貨頁面刷條碼的地方
 
 $opType = __get('opType');
 
@@ -89,13 +90,16 @@ switch ($method)
                             'uid' => $user->uid
                         ))) {
                             $message = "入庫成功"; //{$palletId}=>{$shelfId},model:{$model},item:{$item}, Qty:{$qty}.
+                            //__showMsg("入庫操作成功.");
                             $isSuccess = true;
                         } else {
                             if($conn->getErrNo() == 1062)
                             {
-                                __showMsg( "庫中已存在此編號的棧板, 進制重複入庫.");
+                                //__showMsg( "庫中已存在此編號的棧板, 無法重複入庫.");
+                                $message = "庫中已存在此編號的棧板, 無法重複入庫.";
                             } else {
-                                __showMsg("入庫失敗" . $conn->getErr());
+                                //__showMsg("入庫失敗" . $conn->getErr());
+                                $message = "入庫失敗";
                             }
                         }
                     }
@@ -149,6 +153,23 @@ switch ($method)
             }
         }
 
+        if(!empty($scanISN))
+        {
+            if ($sfisISN = $sfis->getSFISISN($scanISN))
+            {
+                if($pallet = $sfis->getPalletInfoByIsn($sfisISN))
+                {
+                    switch ($opType)
+                    {
+                        case 'pallet': $isn = $pallet['pallet'];   break;
+                        case 'so': $isn = $pallet['so'];   break;
+                        case 'shelf': $isn = $goods->getInfo($pallet['pallet'],'shelfId');   break;
+
+                    }
+                }
+            }
+        }
+
         if(!empty($isn)) {
             switch ($opType) {
                 case 'pallet':
@@ -166,14 +187,49 @@ switch ($method)
 
         break;
     case 'search':      //搜索
+        $searchType = __get('searchType');      //查找類型
+        //$isn        = __get('iptSearch');       //查找內容
+        $palletInfo = $goods->samplePalletInfo;
+
+        if(!empty($scanISN))
+        {
+            if ($sfisISN = $sfis->getSFISISN($scanISN))
+            {
+                if($pallet = $sfis->getPalletInfoByIsn($sfisISN))
+                {
+                    switch ($searchType)
+                    {
+                        case 'pallet': $isn = $pallet['pallet'];   break;
+                        case 'so': $isn = $pallet['so'];   break;
+                        case 'shelf': $isn = $goods->getInfo($pallet['pallet'],'shelfId');   break;
+
+                    }
+                }
+            }
+        }
+
+        if(!empty($isn))
+        {
+            switch ($searchType)
+            {
+                case 'shelf':
+                    $palletInfo['shelfId'] = $isn;
+                    break;
+                case 'so':
+                    $palletInfo['so']     = $isn;
+                    break;
+                case 'pallet':
+                    $palletInfo['palletId'] = $isn;
+                    break;
+            }
+
+            $result = $goods->getGoodsInfo($palletInfo);
+        }
     default:
         break;
 }
 
-include("Form/{$act}/{$method}.php");
+require_once("Libs/checkMobileLoadPage.php");
 
-//foreach ($loadPages as $page)       //加載要顯示的頁面
-//{
-//    include($page);
-//}
+
 

@@ -68,8 +68,8 @@ if($isMobile) {
         __createLink(null,null,'menuButton','?act=goods/in','入庫');
         __createLink(null,null,'menuButton','?act=goods/out','出庫');
         if(!$isMobile) __createLink(null,null,'menuButton','?act=shelf','儲位');
-        if(!$isMobile) __createLink(null,null,'menuButton','?act=inventory','盤點');
-        if(!$isMobile && $user->authByRole('管理員'))
+        if(!$isMobile) __createLink(null,null,'menuButton','?act=report/search','盤點');
+        if(!$isMobile && $user->authByRole('管理員',false))
         {
             __createLink(null,null,'menuButton','?act=user/man','用戶管理');
             __createLink(null,null,'menuButton','?act=user/roles','角色管理');

@@ -127,4 +127,15 @@ class Goods
         $updateSql = "update Goods set ShelfId='{$newShelfId}' where PalletId='{$palletId}'";
         return $this->gconn->query($updateSql);
     }
+
+    /**
+     * 返回對應棧板一個字段的信息
+     * @param $palletId
+     * @param $field
+     * @return bool
+     */
+    public function getInfo($palletId, $field)
+    {
+        return $this->gconn->getItemByItemName("select {$field} from goods where palletId='{$palletId}'");
+    }
 }

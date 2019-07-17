@@ -1,62 +1,38 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: Ping_yi
- * Date: 2019/6/11
- * Time: 17:06
- */
-
-//創建功能
-$funDesc = __get('iptFunDesc');
-if(!empty(__get('btnCreateFun')))
-{
-    if(empty($funDesc))
-    {
-        __showMsg('功能名稱不能為空.');
-    } else{
-        if($user->funAdd($funDesc))
-        {
-            __showMsg('功能創建成功');
-        } else{
-            __showMsg('功能創建失敗,' . $user->uconn->getErr());
-        }
-    }
-}
-
-//刪除功能
-if(!empty(__get('btnFunDel')))
-{
-    foreach ($conn->getAllRow("select code from fun") as $f)
-    {
-        if(!empty(__get($f[0])))
-        {
-            $user->funDelete($f[0]);
-        }
-    }
-    __showMsg('功能刪除成功.');
-}
-
-//以checkbox呈現所有功能
-$funListstr = "";
-foreach ($conn->getAllRow("select code,name from fun order by Name") as $f)
-{
-    $funListstr .= "<li><label for='{$f[0]}'>{$f[1]}</label><input type='checkbox' id='{$f[0]}' name='{$f[0]}' value='{$f[0]}'/></li>";
-}
-
-?>
-<form action="?act=fun" method="post" enctype="multipart/form-data" name="formFun" id="formFun">
-<div>
-    <div class="divSearch">
-      <label for="iptFunDesc">功能描述</label>
-      <input type="text" name="iptFunDesc" id="iptFunDesc" />
-      <input type="submit" name="btnCreateFun" id="btnCreateFun" value="創建功能" />
-        <input type="submit" name="btnFunDel" id="btnFunDel" value="刪除選擇的功能" />
-    </div>
+<form action="?act=user/fun" method="post" enctype="multipart/form-data" name="formFun" id="formFun">
     <div>
-    	<ul>
-            <?php echo $funListstr ?>
-        </ul>
-
+        <div class="divSearch">
+            <label for="newFunName">新建功能:</label>
+            <input type="text" name="newFunName" id="newFunName" />
+            <input type="submit" name="btnCreateFun" id="btnCreateFun" value="創建功能" />
+            <input type="submit" name="btnFunDel" id="btnFunDel" value="刪除選擇的功能" />
+        </div>
+        <div>
+            <?php
+            if(!$result)
+            {
+                echo "沒有數據可顯示.";
+            } else {
+                //shelfId,palletId,model,item,so,qty,customer,uidIn,dateIn
+                //表頭部分
+                echo "<table class='resultTable'>";
+                echo "<tr class='resultTitle'>";
+                foreach (array('序號','代碼','功能名稱','') as $item) echo "<td>{$item}</td>";
+                echo "</tr>";
+                //表格部分
+                $idx = 0;
+                foreach ($result as $item)
+                {
+                    $idx++;
+                    print "<tr class='resultContent selRow'>";
+                    printf( "<td>%d</td>", $idx);
+                    printf( "<td>%s</td>", $item['code']);
+                    printf( "<td>%s</td>", $item['name']);
+                    printf( "<td><input type='checkbox' name='FID_%s' class='clsSelPallet' value='%s'/></td>", $item['code'],$item['code']);
+                    print "</tr>";
+                }
+                print "</table>";
+            }
+            ?>
+        </div>
     </div>
-</div>
 </form>

@@ -73,12 +73,25 @@ padding: 5% 30% 50%;";
     }
 </style>
 <div style="border: 1px solid #666">
-    <div id="divUserLogin">
-        <form id="formUserLogin" enctype="multipart/form-data" action="?act=userLogin" method="post">
-            <div><span>账户:</span><input id="uid" name="uid" type="text" value="<?php echo $uid ?>"/></div>
-            <div><span>密碼:</span><input id="password" name="password" type="password" value="<?php echo $pwd ?>"/></div>
-            <div></div>
-            <div><input type="submit" name="btnUserLogin" id="btnUserLogin" value="登入系统" style="float: right;"></div>
-        </form>
-    </div>
+    <form id="formUserLogin" enctype="multipart/form-data" action="?act=userLogin" method="post">
+        <table style="width: 100%;height: 100%;">
+            <tr>
+                <td align="center" valign="middle">
+                    <table>
+                        <tr>
+                            <td>賬號:</td>
+                            <td><input id="uid" name="uid" type="text" value="<?php echo $uid ?>"/></td>
+                        </tr>
+                        <tr>
+                            <td>密碼:</td>
+                            <td><input id="password" name="password" type="password" value="<?php echo $pwd ?>"/></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><input type="submit" name="btnUserLogin" id="btnUserLogin" value="登入系统" style="float: right;"></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </form>
 </div>
